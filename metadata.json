@@ -1,0 +1,5 @@
+{
+  "name": "Course Module Maker",
+  "description": "A web application for creating and organizing course content, including sections, lessons, and video attachments from local files or YouTube.",
+  "requestFramePermissions": []
+}
