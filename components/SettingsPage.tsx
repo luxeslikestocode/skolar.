@@ -1,9 +1,10 @@
+
 import React from 'react';
 import { type Settings } from '../types';
 
 interface SettingsPageProps {
     settings: Settings;
-    onUpdateSettings: (updates: Partial<Settings> | ((s:Settings) => Partial<Settings>)) => void;
+    onUpdateSettings: (updates: Partial<Settings>) => void;
 }
 
 const SettingsPage: React.FC<SettingsPageProps> = ({ settings, onUpdateSettings }) => {
@@ -26,12 +27,12 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ settings, onUpdateSettings 
     );
 
     const handleNotificationChange = (key: keyof Settings['notifications'], value: boolean) => {
-        onUpdateSettings((prevSettings) => ({
+        onUpdateSettings({
             notifications: {
-                ...prevSettings.notifications,
+                ...settings.notifications,
                 [key]: value,
-            }
-        }));
+            },
+        });
     };
 
     return (
@@ -121,3 +122,4 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ settings, onUpdateSettings 
 };
 
 export default SettingsPage;
+    

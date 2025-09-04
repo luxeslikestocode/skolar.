@@ -1,9 +1,41 @@
-import React from 'react';
-import { UserIcon, UploadIcon } from './icons';
+import React, { useState, useEffect } from 'react';
+import { type Profile } from '../types';
+import { UploadIcon } from './icons';
 
-const ProfilePage: React.FC = () => {
+interface ProfilePageProps {
+    profile: Profile;
+    onUpdateProfile: (updates: Partial<Profile>) => void;
+}
+
+const ProfilePage: React.FC<ProfilePageProps> = ({ profile, onUpdateProfile }) => {
+    const [name, setName] = useState(profile.name);
+    const [email, setEmail] = useState(profile.email);
+    const [showSaved, setShowSaved] = useState(false);
+
+    useEffect(() => {
+        setName(profile.name);
+        setEmail(profile.email);
+    }, [profile]);
+
+    const handleSave = (field: 'name' | 'email', value: string) => {
+        if (field === 'name' && value !== profile.name) {
+            onUpdateProfile({ name: value });
+        }
+        if (field === 'email' && value !== profile.email) {
+            onUpdateProfile({ email: value });
+        }
+        
+        setShowSaved(true);
+        setTimeout(() => setShowSaved(false), 2000);
+    };
+
     return (
         <div className="p-8 text-neutral-700 dark:text-neutral-300 animate-fade-in">
+            {showSaved && (
+                <div className="fixed top-20 left-1/2 -translate-x-1/2 bg-neutral-800 text-white px-4 py-2 rounded-md shadow-lg transition-all animate-fade-in-down">
+                    Saved
+                </div>
+            )}
             <div className="max-w-3xl mx-auto bg-neutral-100 dark:bg-[#1a1a1a] rounded-lg border border-neutral-200 dark:border-neutral-800 p-8">
                 <div className="flex flex-col sm:flex-row items-center space-y-6 sm:space-y-0 sm:space-x-8">
                     <div className="relative">
@@ -18,8 +50,8 @@ const ProfilePage: React.FC = () => {
                         </button>
                     </div>
                     <div className="flex-grow w-full text-center sm:text-left">
-                        <h3 className="text-2xl font-semibold text-black dark:text-white">John Doe</h3>
-                        <p className="text-neutral-600 dark:text-neutral-400">john.doe@example.com</p>
+                        <h3 className="text-2xl font-semibold text-black dark:text-white">{profile.name}</h3>
+                        <p className="text-neutral-600 dark:text-neutral-400">{profile.email}</p>
                     </div>
                 </div>
 
@@ -29,7 +61,9 @@ const ProfilePage: React.FC = () => {
                         <input
                             type="text"
                             id="name"
-                            defaultValue="John Doe"
+                            value={name}
+                            onChange={(e) => setName(e.target.value)}
+                            onBlur={(e) => handleSave('name', e.target.value)}
                             className="w-full bg-neutral-200 dark:bg-neutral-800 border border-neutral-300 dark:border-neutral-600 rounded-md px-3 py-2 text-black dark:text-white placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-neutral-500 transition-colors"
                         />
                     </div>
@@ -38,7 +72,9 @@ const ProfilePage: React.FC = () => {
                         <input
                             type="email"
                             id="email"
-                            defaultValue="john.doe@example.com"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            onBlur={(e) => handleSave('email', e.target.value)}
                             className="w-full bg-neutral-200 dark:bg-neutral-800 border border-neutral-300 dark:border-neutral-600 rounded-md px-3 py-2 text-black dark:text-white placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-neutral-500 transition-colors"
                         />
                     </div>
@@ -51,6 +87,13 @@ const ProfilePage: React.FC = () => {
                 }
                 .animate-fade-in {
                     animation: fade-in 0.3s ease-out forwards;
+                }
+                @keyframes fade-in-down {
+                    from { opacity: 0; transform: translateY(-10px) translateX(-50%); }
+                    to { opacity: 1; transform: translateY(0) translateX(-50%); }
+                }
+                .animate-fade-in-down {
+                    animation: fade-in-down 0.3s ease-out forwards;
                 }
             `}</style>
         </div>

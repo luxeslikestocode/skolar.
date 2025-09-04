@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { type Lesson } from '../types';
 import VideoPlayer from './VideoPlayer';
 import { CheckIcon, CopyLinkIcon, PasteVideoIcon, UploadIcon, ImagePlaceholderIcon } from './icons';
@@ -7,6 +7,7 @@ interface MainContentProps {
   sectionTitle: string;
   lesson: Lesson;
   onUpdateLessonVideo: (lessonId: string, videoUrl: string, videoType: 'youtube' | 'local') => void;
+  onUpdateLessonContent: (lessonId: string, content: string) => void;
 }
 
 const getYoutubeEmbedUrl = (url: string): string | null => {
@@ -19,12 +20,18 @@ const getYoutubeEmbedUrl = (url: string): string | null => {
     return videoId ? `https://www.youtube.com/embed/${videoId}` : null;
 };
 
-const MainContent: React.FC<MainContentProps> = ({ sectionTitle, lesson, onUpdateLessonVideo }) => {
+const MainContent: React.FC<MainContentProps> = ({ sectionTitle, lesson, onUpdateLessonVideo, onUpdateLessonContent }) => {
   const [isPasting, setIsPasting] = useState(false);
   const [youtubeUrl, setYoutubeUrl] = useState('');
   const [copyLinkText, setCopyLinkText] = useState('Copy link');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const attachmentInputRef = useRef<HTMLInputElement>(null);
+  const [content, setContent] = useState(lesson.content || '');
+  
+  // Update local content state when lesson changes
+  useEffect(() => {
+      setContent(lesson.content || '');
+  }, [lesson.id, lesson.content]);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -58,6 +65,12 @@ const MainContent: React.FC<MainContentProps> = ({ sectionTitle, lesson, onUpdat
 
   const handleAttachmentUploadClick = () => {
       attachmentInputRef.current?.click();
+  };
+  
+  const handleContentBlur = () => {
+      if (content !== lesson.content) {
+          onUpdateLessonContent(lesson.id, content);
+      }
   };
 
   return (
@@ -97,7 +110,6 @@ const MainContent: React.FC<MainContentProps> = ({ sectionTitle, lesson, onUpdat
           {!lesson.videoUrl && (
              <div className="absolute top-4 right-4">
                 <div className="grid grid-cols-1 grid-rows-1 h-10 items-center">
-                    {/* Both elements in the same cell, stacked for animation */}
                     <button 
                         onClick={() => setIsPasting(true)} 
                         className={`
@@ -167,10 +179,13 @@ const MainContent: React.FC<MainContentProps> = ({ sectionTitle, lesson, onUpdat
         </div>
         <div className="mt-6 flex-grow flex flex-col">
             <h3 className="font-semibold text-black dark:text-white mb-2 text-sm">Content</h3>
-            <div className="flex-grow bg-neutral-100 dark:bg-neutral-900/50 rounded-lg border border-neutral-200 dark:border-neutral-800 min-h-[150px]">
+            <div className="flex-grow flex flex-col bg-neutral-100 dark:bg-neutral-900/50 rounded-lg border border-neutral-200 dark:border-neutral-800 min-h-[250px] relative">
                 <textarea 
-                    className="w-full h-full bg-transparent p-4 text-neutral-800 dark:text-neutral-300 placeholder-neutral-500 focus:outline-none resize-none"
-                    placeholder="Press '/' for commands"
+                    value={content}
+                    onChange={(e) => setContent(e.target.value)}
+                    onBlur={handleContentBlur}
+                    className="w-full h-full bg-transparent p-4 text-neutral-800 dark:text-neutral-300 placeholder-neutral-500 focus:outline-none resize-none rounded-lg"
+                    placeholder="Add your lesson content here..."
                 />
             </div>
         </div>

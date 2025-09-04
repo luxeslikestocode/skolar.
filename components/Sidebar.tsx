@@ -96,12 +96,11 @@ const Sidebar: React.FC<SidebarProps> = (props) => {
       <div className="p-4 border-b border-neutral-200 dark:border-neutral-800 flex-shrink-0">
           <div className="flex items-center justify-between">
               <div className="flex items-center">
-                  <div className="w-10 h-10 bg-neutral-200 dark:bg-neutral-900 rounded-lg flex items-center justify-center border border-neutral-300 dark:border-neutral-700">
-                    <span className="font-bold text-black dark:text-white text-lg">b</span>
-                    <span className="font-bold text-black dark:text-white text-lg">f.</span>
+                  <div className="w-10 h-10 bg-black rounded-md flex items-center justify-center">
+                      <span className="font-bold text-white text-lg tracking-tighter">bf.</span>
                   </div>
                   <div className="ml-3">
-                      <p className="text-black dark:text-white font-semibold">byteflow</p>
+                      <p className="text-black dark:text-white font-semibold">byteflow.</p>
                       <p className="text-xs text-neutral-500 dark:text-neutral-400">Online</p>
                   </div>
               </div>

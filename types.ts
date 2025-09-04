@@ -1,4 +1,14 @@
 
+
+// Fix: Add global declaration for custom element 'emoji-picker'
+declare global {
+    namespace JSX {
+        interface IntrinsicElements {
+            'emoji-picker': React.DetailedHTMLProps<import('react').HTMLAttributes<HTMLElement>, HTMLElement>;
+        }
+    }
+}
+
 export interface Lesson {
   id: string;
   title: string;
@@ -6,6 +16,7 @@ export interface Lesson {
   icon?: string;
   videoUrl?: string;
   videoType?: 'youtube' | 'local';
+  content?: string;
 }
 
 export interface Section {
@@ -33,4 +44,9 @@ export interface Settings {
     reports: boolean;
   };
   theme: 'Dark' | 'Light' | 'System';
+}
+
+export interface Profile {
+  name: string;
+  email: string;
 }

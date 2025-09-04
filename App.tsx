@@ -1,6 +1,6 @@
 
 import React, { useState, useCallback, useRef, useEffect } from 'react';
-import { type Section, type Lesson, type Course, type Settings } from './types';
+import { type Section, type Lesson, type Course, type Settings, type Profile } from './types';
 import Header from './components/Header';
 import Sidebar from './components/Sidebar';
 import MainContent from './components/MainContent';
@@ -10,15 +10,6 @@ import ProfilePage from './components/ProfilePage';
 import SettingsPage from './components/SettingsPage';
 import { PlusIcon, MoreIcon, TrashIcon, ImageIcon, EmojiIcon, PencilIcon } from './components/icons';
 
-// FIX: Correctly define the custom 'emoji-picker' element for TypeScript's JSX recognition.
-// This ensures the custom element can be used without type errors by using the standard 'className' property.
-declare global {
-    namespace JSX {
-        interface IntrinsicElements {
-            'emoji-picker': React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement>;
-        }
-    }
-}
 
 const ModuleCard: React.FC<{
     course: Course,
@@ -79,7 +70,7 @@ const ModuleCard: React.FC<{
     const lessonsCount = course.sections.reduce((sum, section) => sum + section.lessons.length, 0);
 
     return (
-        <div className="bg-neutral-100 dark:bg-[#1F1F1F] rounded-lg group transition-all duration-300 hover:shadow-lg hover:shadow-neutral-300/50 dark:hover:shadow-neutral-600/20 text-left w-full relative animate-card-enter border border-neutral-200 dark:border-transparent">
+        <div className="bg-neutral-100 dark:bg-[#1F1F1F] rounded-lg group transition-all duration-300 hover:shadow-lg hover:shadow-neutral-300/50 dark:hover:shadow-neutral-600/20 text-left w-full relative animate-card-enter border border-neutral-200 dark:border-neutral-800">
             <input type="file" accept="image/*" ref={bannerInputRef} onChange={handleBannerChange} className="hidden" />
             <div className="relative">
                 <button onClick={onClick} className="w-full h-full focus:outline-none focus:ring-2 focus:ring-neutral-500 rounded-lg">
@@ -216,7 +207,6 @@ const EmojiPicker: React.FC<{
 
     return (
         <div ref={containerRef} className="absolute z-50" style={{ top: rect ? rect.bottom + 8 : 0, left: rect ? rect.left : 0 }}>
-{/* FIX: Use `className` instead of `class` for styling, which is the standard in React and will be correctly rendered as the 'class' attribute for the custom element. */}
              <emoji-picker className={theme === 'Light' ? 'light' : 'dark'}></emoji-picker>
         </div>
     );
@@ -242,12 +232,37 @@ const App: React.FC = () => {
     },
     theme: 'Dark',
   });
+   const [profile, setProfile] = useState<Profile>({
+    name: 'John Doe',
+    email: 'john.doe@example.com',
+  });
 
   useEffect(() => {
     const root = window.document.documentElement;
-    const isDark = settings.theme === 'Dark' || (settings.theme === 'System' && window.matchMedia('(prefers-color-scheme: dark)').matches);
-    root.classList.toggle('dark', isDark);
-  }, [settings.theme]);
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+
+    const applyTheme = () => {
+        if (settings.theme === 'System') {
+            if (mediaQuery.matches) {
+                root.classList.add('dark');
+            } else {
+                root.classList.remove('dark');
+            }
+        } else if (settings.theme === 'Dark') {
+            root.classList.add('dark');
+        } else {
+            root.classList.remove('dark');
+        }
+    };
+
+    applyTheme();
+
+    mediaQuery.addEventListener('change', applyTheme);
+    return () => {
+        mediaQuery.removeEventListener('change', applyTheme);
+    };
+}, [settings.theme]);
+
 
   const selectedCourse = courses.find(c => c.id === selectedCourseId) || null;
 
@@ -267,9 +282,14 @@ const App: React.FC = () => {
       });
   }, []);
 
-  const handleUpdateSettings = useCallback((updates: Partial<Settings> | ((s:Settings) => Partial<Settings>)) => {
-    setSettings(prev => ({ ...prev, ...(typeof updates === 'function' ? updates(prev) : updates) }));
+  const handleUpdateSettings = useCallback((updates: Partial<Settings>) => {
+    setSettings(prev => ({ ...prev, ...updates }));
   }, []);
+
+  const handleUpdateProfile = useCallback((updates: Partial<Profile>) => {
+    setProfile(prev => ({ ...prev, ...updates }));
+  }, []);
+
 
   const handleSelectLesson = useCallback((lessonId: string) => {
     setSelectedLessonId(lessonId);
@@ -352,6 +372,7 @@ const App: React.FC = () => {
         title,
         type: 'lesson',
         icon,
+        content: ''
     };
 
     setCourses(prev => prev.map(course =>
@@ -388,6 +409,10 @@ const App: React.FC = () => {
 
   const handleUpdateLessonVideo = useCallback((lessonId: string, videoUrl: string, videoType: 'youtube' | 'local') => {
     handleUpdateItem(lessonId, { videoUrl, videoType });
+  }, [handleUpdateItem]);
+
+  const handleUpdateLessonContent = useCallback((lessonId: string, content: string) => {
+    handleUpdateItem(lessonId, { content });
   }, [handleUpdateItem]);
   
   const handleEmojiSelect = (id: string, emoji: string) => {
@@ -450,13 +475,14 @@ const App: React.FC = () => {
                       sectionTitle={selectedSection.title}
                       lesson={selectedLesson}
                       onUpdateLessonVideo={handleUpdateLessonVideo}
+                      onUpdateLessonContent={handleUpdateLessonContent}
                   />;
               }
               return <div className="flex h-full items-center justify-center text-neutral-500">
                   <p>Select a lesson to begin or create a new one.</p>
               </div>;
           case 'profile':
-              return <ProfilePage />;
+              return <ProfilePage profile={profile} onUpdateProfile={handleUpdateProfile} />;
           case 'settings':
               return <SettingsPage settings={settings} onUpdateSettings={handleUpdateSettings} />;
           default:
